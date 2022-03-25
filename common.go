@@ -230,6 +230,106 @@ func (b *_Base) getCallFunc3(tvl reflect.Value) (func(*gin.Context), error) {
 }
 
 // Custom context type with request parameters
+func (b *_Base) getCallFunc4(tvl reflect.Value) (func(*gin.Context), error) {
+	typ := tvl.Type()
+
+	if typ.NumOut() != 0 {
+		if typ.NumOut() == 2 { // Parameter checking 参数检查
+			if returnType := typ.Out(1); returnType != typeOfError {
+				return nil, errors.Errorf("method : %v , returns[1] %v not error",
+					runtime.FuncForPC(tvl.Pointer()).Name(), returnType.String())
+			}
+		} else {
+			return nil, errors.Errorf("method : %v , Only 2 return values (obj, error) are supported", runtime.FuncForPC(tvl.Pointer()).Name())
+		}
+	}
+
+	ctxType, reqType := typ.In(0), typ.In(1)
+
+	reqIsGinCtx := false
+	if ctxType == reflect.TypeOf(&gin.Context{}) {
+		reqIsGinCtx = true
+	}
+
+	// ctxType != reflect.TypeOf(gin.Context{}) &&
+	// ctxType != reflect.Indirect(reflect.ValueOf(b.iAPIType)).Type()
+	if !reqIsGinCtx && ctxType != b.apiType && !b.apiType.ConvertibleTo(ctxType) {
+		return nil, errors.New("method " + runtime.FuncForPC(tvl.Pointer()).Name() + " first parm not support!")
+	}
+
+	reqIsValue := true
+	if reqType.Kind() == reflect.Ptr {
+		reqIsValue = false
+	}
+	apiFun := func(c *gin.Context) interface{} { return c }
+	if !reqIsGinCtx {
+		apiFun = b.apiFun
+	}
+
+	return func(c *gin.Context) {
+		defer func() {
+			if err := recover(); err != nil {
+				b.recoverErrorFunc(err)
+			}
+		}()
+
+		req := reflect.New(reqType)
+		if !reqIsValue {
+			req = reflect.New(reqType.Elem())
+		}
+		if err := b.unmarshal(c, req.Interface()); err != nil { // Return error message.返回错误信息
+			b.handErrorString(c, req, err)
+			return
+		}
+
+		if reqIsValue {
+			req = req.Elem()
+		}
+		//处理shopId userId
+
+		shopId := c.GetInt("shopId")
+		userId := c.GetInt("userId")
+		item := req.Elem()
+		if shopId > 0 {
+			val := item.FieldByName("ShopId")
+			if val.IsValid() == true {
+				val.SetInt(int64(shopId))
+			}
+
+		}
+
+		if userId > 0 {
+			val := item.FieldByName("UserId")
+			if val.IsValid() == true {
+				val.SetInt(int64(userId))
+			}
+
+		}
+
+		// var returnValues []reflect.Value
+		returnValues := tvl.Call([]reflect.Value{reflect.ValueOf(apiFun(c)), req})
+		if returnValues != nil {
+			obj := returnValues[0].Interface()
+			rerr := returnValues[1].Interface()
+			if rerr != nil {
+				err := rerr.(error)
+				msg := message.GetErrorMsg(message.InValidOp)
+				gerr := status.Convert(err)
+				if gerr != nil {
+					msg.Code = int(gerr.Code())
+					msg.Error = gerr.Message()
+				} else {
+					msg.Error = err.Error()
+				}
+				c.JSON(http.StatusBadRequest, msg)
+			} else {
+				c.JSON(http.StatusOK, obj)
+			}
+		}
+	}, nil
+}
+
+// Custom context type with request parameters
 func (b *_Base) getCallObj3(tvl, obj reflect.Value, methodName string) (func(*gin.Context), error) {
 	typ := tvl.Type()
 	if typ.NumIn() != 3 { // Parameter checking 参数检查

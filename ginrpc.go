@@ -196,10 +196,23 @@ func (b *_Base) RegisterHandlerFunc(router gin.IRoutes, httpMethod []string, rel
 }
 
 // HandlerFunc Get and filter the parameters to be bound
+//中台标准返回
 func (b *_Base) HandlerFunc(handlerFunc interface{}) gin.HandlerFunc { // 获取并过滤要绑定的参数
 
 	// Custom context type with request parameters .自定义的context类型,带request 请求参数
 	call, err := b.getCallFunc3(reflect.ValueOf(handlerFunc))
+	if err != nil { // Direct reporting error.
+		panic(err)
+	}
+
+	return call
+}
+
+//自定义返回，用于外部对接或者适配老接口
+func (b *_Base) HandlerPureFunc(handlerFunc interface{}) gin.HandlerFunc { // 获取并过滤要绑定的参数
+
+	// Custom context type with request parameters .自定义的context类型,带request 请求参数
+	call, err := b.getCallFunc4(reflect.ValueOf(handlerFunc))
 	if err != nil { // Direct reporting error.
 		panic(err)
 	}
