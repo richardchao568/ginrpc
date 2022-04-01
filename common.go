@@ -178,25 +178,26 @@ func (b *_Base) getCallFunc3(tvl reflect.Value) (func(*gin.Context), error) {
 			req = req.Elem()
 		}
 		//处理shopId userId
+		//去掉自动赋值逻辑，通过getval去拿
 
-		shopId := c.GetInt("shopId")
-		userId := c.GetInt("userId")
-		item := req.Elem()
-		if shopId > 0 {
-			val := item.FieldByName("ShopId")
-			if val.IsValid() == true {
-				val.SetInt(int64(shopId))
-			}
-
-		}
-
-		if userId > 0 {
-			val := item.FieldByName("UserId")
-			if val.IsValid() == true {
-				val.SetInt(int64(userId))
-			}
-
-		}
+		//shopId := c.GetInt("shopId")
+		//userId := c.GetInt("userId")
+		//item := req.Elem()
+		//if shopId > 0 {
+		//	val := item.FieldByName("ShopId")
+		//	if val.IsValid() == true {
+		//		val.SetInt(int64(shopId))
+		//	}
+		//
+		//}
+		//
+		//if userId > 0 {
+		//	val := item.FieldByName("UserId")
+		//	if val.IsValid() == true {
+		//		val.SetInt(int64(userId))
+		//	}
+		//
+		//}
 
 		// var returnValues []reflect.Value
 		returnValues := tvl.Call([]reflect.Value{reflect.ValueOf(apiFun(c)), req})
@@ -286,25 +287,26 @@ func (b *_Base) getCallFunc4(tvl reflect.Value) (func(*gin.Context), error) {
 			req = req.Elem()
 		}
 		//处理shopId userId
+		//去掉自动复制逻辑，通过getval 去拿
 
-		shopId := c.GetInt("shopId")
-		userId := c.GetInt("userId")
-		item := req.Elem()
-		if shopId > 0 {
-			val := item.FieldByName("ShopId")
-			if val.IsValid() == true {
-				val.SetInt(int64(shopId))
-			}
-
-		}
-
-		if userId > 0 {
-			val := item.FieldByName("UserId")
-			if val.IsValid() == true {
-				val.SetInt(int64(userId))
-			}
-
-		}
+		//shopId := c.GetInt("shopId")
+		//userId := c.GetInt("userId")
+		//item := req.Elem()
+		//if shopId > 0 {
+		//	val := item.FieldByName("ShopId")
+		//	if val.IsValid() == true {
+		//		val.SetInt(int64(shopId))
+		//	}
+		//
+		//}
+		//
+		//if userId > 0 {
+		//	val := item.FieldByName("UserId")
+		//	if val.IsValid() == true {
+		//		val.SetInt(int64(userId))
+		//	}
+		//
+		//}
 
 		// var returnValues []reflect.Value
 		returnValues := tvl.Call([]reflect.Value{reflect.ValueOf(apiFun(c)), req})
